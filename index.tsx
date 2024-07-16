@@ -54,7 +54,7 @@ const messageCtxPatch: NavContextMenuPatchCallback = (children, { message }) => 
 export default definePlugin({
     name: "Translate+",
     description: "Translate messages with Google Translate and Toki Pona AI",
-    authors: [Devs.Ven, { name: "Prince527", id: 364105797162237952n }],
+    authors: [Devs.Ven, Devs.Prince527 ?? { name: "Prince527", id: 364105797162237952n }],
     dependencies: ["MessageAccessoriesAPI", "MessagePopoverAPI", "MessageEventsAPI", "ChatInputButtonAPI"],
     settings,
     contextMenus: {
