@@ -45,10 +45,9 @@ function isTokiPona(string) {
     return percentage >= 50;
 }
 
-import { rawDictionary } from './dictionary.ts';
 
-function translateShavian(message) {
-    const dictionary = JSON.parse(rawDictionary);
+async function translateShavian(message) {
+    const dictionary = await (await fetch("https://forkprince.github.io/TranslatePlus/shavian.json")).json();
 
     const punctuationMap = {
         '"': `"`,
@@ -96,14 +95,11 @@ export async function translate(kind: "received" | "sent", text: string): Promis
     let output;
 
     if (isTokiPona(text)) {
-        const [api, auth] = [settings.store.tokiPonaAPI, settings.store.tokiPonaAuth];
-
-        const translate = await (await fetch(api, {
+        const translate = await (await fetch(settings.store.tokiPonaAPI, {
             method: "POST",
             headers: {
                 "Accept": "application/json",
-                "Content-Type": "application/json",
-                "Authorization": `Basic ${auth}`
+                "Content-Type": "application/json"
             },
             body: JSON.stringify({
                 text: text,
@@ -119,7 +115,7 @@ export async function translate(kind: "received" | "sent", text: string): Promis
     } else if (/[\u{10450}-\u{1047F}]+/u.test(text)) {
         output = {
             src: "sh",
-            text: translateShavian(text)
+            text: await translateShavian(text)
         }
     } else {
         const [sourceLang, targetLang] = [settings.store[kind + "Input"], settings.store[kind + "Output"]];
