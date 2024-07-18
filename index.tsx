@@ -53,7 +53,7 @@ const messageCtxPatch: NavContextMenuPatchCallback = (children, { message }) => 
 
 export default definePlugin({
     name: "Translate+",
-    description: "Translate messages with Google Translate and Toki Pona AI",
+    description: "Vencord's translate plugin but with support for artistic languages",
     authors: [Devs.Ven, Devs.Prince527 ?? { name: "Prince527", id: 364105797162237952n }],
     dependencies: ["MessageAccessoriesAPI", "MessagePopoverAPI", "MessageEventsAPI", "ChatInputButtonAPI"],
     settings,
