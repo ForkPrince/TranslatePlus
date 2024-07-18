@@ -1,4 +1,4 @@
-export const rawDictionary = `{
+{
     "𐑩𐑥": "'em/um",
     "𐑯𐑰𐑔": "'neath",
     "𐑐𐑪𐑯": "'pon",
@@ -75228,4 +75228,4 @@ export const rawDictionary = `{
     "𐑚𐑮𐑳": "bruh",
     "𐑣𐑴𐑥𐑦𐑟": "homies",
     "𐑤𐑩𐑥𐑸": "lamar"
-}`;
+}
