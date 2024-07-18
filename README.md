@@ -1,13 +1,16 @@
 # Translate+
-So its Vencord's translate plugin but with support for more languages.
+
+Vencord's translate plugin but with support for artistic languages!
 
 ## Added languages
 
 ### Toki Pona
 
-This uses my own custom translation API, which requires an API key.
-
 ![example](https://api.serversmp.xyz/upload/6693deac7036ecb33d717796.webp)
+
+### Sitelen Pona
+
+![example](https://api.serversmp.xyz/upload/66998b7b7036ecb33d717e80.webp)
 
 ### Shavian
 

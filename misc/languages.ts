@@ -31,9 +31,9 @@ copy(Object.fromEntries(
 ))
 */
 
-export type Language = keyof typeof Languages;
+export type languages = keyof typeof languages;
 
-export const Languages = {
+export const languages = {
     "auto": "Detect language",
     "af": "Afrikaans",
     "sq": "Albanian",
