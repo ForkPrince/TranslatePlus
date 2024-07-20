@@ -67,7 +67,7 @@ export default definePlugin({
                 message: message,
                 channel: ChannelStore.getChannel(message.channel_id),
                 onClick: () => handleTranslate(message),
-            }
+            };
         });
     },
     stop() {
