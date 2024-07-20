@@ -48,7 +48,7 @@ const messageCtxPatch: NavContextMenuPatchCallback = (children, { message }) => 
 export default definePlugin({
     name: "Translate+",
     description: "Vencord's translate plugin but with support for artistic languages!",
-    dependencies: ["MessageAccessoriesAPI", "ChatInputButtonAPI"],
+    dependencies: ["MessageAccessoriesAPI"],
     authors: [Devs.Ven, { name: "Prince527", id: 364105797162237952n }],
     settings,
     contextMenus: {
@@ -58,13 +58,17 @@ export default definePlugin({
     start() {
         addAccessory("ec-translation", props => <Accessory message={props.message} />);
 
-        addButton("ec-translate", message => ({
-            label: "Translate",
-            icon: Icon,
-            message: message,
-            channel: ChannelStore.getChannel(message.channel_id),
-            onClick: () => handleTranslate(message),
-        }));
+        addButton("ec-translate", message => {
+            if (!message.content) return null;
+
+            return {
+                label: "Translate",
+                icon: Icon,
+                message: message,
+                channel: ChannelStore.getChannel(message.channel_id),
+                onClick: () => handleTranslate(message),
+            }
+        });
     },
     stop() {
         removeButton("ec-translate");
