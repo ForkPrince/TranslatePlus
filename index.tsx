@@ -16,62 +16,97 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import "./style.css";
+import "./styles.css";
 
 import { findGroupChildrenByChildId, NavContextMenuPatchCallback } from "@api/ContextMenu";
-import { addAccessory, removeAccessory } from "@api/MessageAccessories";
-import { addButton, removeButton } from "@api/MessagePopover";
 import { Devs } from "@utils/constants";
 import definePlugin from "@utils/types";
+import { Message } from "@vencord/discord-types";
 import { ChannelStore, Menu } from "@webpack/common";
 
 import { settings } from "./settings";
-import { Accessory, handleTranslate } from "./utils/accessory";
-import { Icon } from "./utils/icon";
+import { setShouldShowTranslateEnabledTooltip, TranslateChatBarIcon, TranslateIcon } from "./TranslateIcon";
+import { handleTranslate, TranslationAccessory } from "./TranslationAccessory";
+import { translate } from "./utils";
 
-const messageCtxPatch: NavContextMenuPatchCallback = (children, { message }) => {
-    if (!message.content) return;
+const messageCtxPatch: NavContextMenuPatchCallback = (children, { message }: { message: Message; }) => {
+    const content = getMessageContent(message);
+    if (!content) return;
 
     const group = findGroupChildrenByChildId("copy-text", children);
     if (!group) return;
 
     group.splice(group.findIndex(c => c?.props?.id === "copy-text") + 1, 0, (
         <Menu.MenuItem
-            id="ec-trans"
+            id="vc-trans"
             label="Translate"
-            icon={Icon}
-            action={() => handleTranslate(message)}
+            icon={TranslateIcon}
+            action={async () => {
+                const trans = await translate("received", content);
+                handleTranslate(message.id, trans);
+            }}
         />
     ));
 };
 
+
+function getMessageContent(message: Message) {
+    // Message snapshots is an array, which allows for nested snapshots, which Discord does not do yet.
+    // no point collecting content or rewriting this to render in a certain way that makes sense
+    // for something currently impossible.
+    return message.content
+        || message.messageSnapshots?.[0]?.message.content
+        || message.embeds?.find(embed => embed.type === "auto_moderation_message")?.rawDescription || "";
+}
+
+let tooltipTimeout: any;
+
 export default definePlugin({
     name: "Translate+",
-    description: "Vencord's translate plugin but with support for artistic languages!",
-    dependencies: ["MessageAccessoriesAPI"],
-    authors: [Devs.Ven, { name: "Prince527", id: 364105797162237952n }],
+    description: "Translate messages with Google Translate, DeepL and support for artistic languages like Toki Pona, Sitelen Pona, and Shavian",
+    authors: [Devs.Ven, Devs.AshtonMemer, { name: "Prince527", id: 364105797162237952n }],
     settings,
     contextMenus: {
         "message": messageCtxPatch
     },
+    // not used, just here in case some other plugin wants it or w/e
+    translate,
 
-    start() {
-        addAccessory("ec-translation", props => <Accessory message={props.message} />);
+    renderMessageAccessory: props => <TranslationAccessory message={props.message} />,
 
-        addButton("ec-translate", message => {
-            if (!message.content) return null;
+    chatBarButton: {
+        icon: TranslateIcon,
+        render: TranslateChatBarIcon
+    },
+
+    messagePopoverButton: {
+        icon: TranslateIcon,
+        render(message: Message) {
+            const content = getMessageContent(message);
+            if (!content) return null;
 
             return {
                 label: "Translate",
-                icon: Icon,
-                message: message,
+                icon: TranslateIcon,
+                message,
                 channel: ChannelStore.getChannel(message.channel_id),
-                onClick: () => handleTranslate(message),
+                onClick: async () => {
+                    const trans = await translate("received", content);
+                    handleTranslate(message.id, trans);
+                }
             };
-        });
+        }
     },
-    stop() {
-        removeButton("ec-translate");
-        removeAccessory("ec-translation");
+
+    async onBeforeMessageSend(_, message) {
+        if (!settings.store.autoTranslate) return;
+        if (!message.content) return;
+
+        setShouldShowTranslateEnabledTooltip?.(true);
+        clearTimeout(tooltipTimeout);
+        tooltipTimeout = setTimeout(() => setShouldShowTranslateEnabledTooltip?.(false), 2000);
+
+        const trans = await translate("sent", message.content);
+        message.content = trans.text;
     }
 });
