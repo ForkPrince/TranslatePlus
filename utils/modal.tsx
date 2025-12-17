@@ -22,8 +22,8 @@ import { Margins } from "@utils/margins";
 import { ModalCloseButton, ModalContent, ModalHeader, ModalProps, ModalRoot } from "@utils/modal";
 import { Forms, SearchableSelect, useMemo } from "@webpack/common";
 
-import { settings } from "./settings";
-import { cl, getLanguages } from "./utils";
+import { settings } from "../settings";
+import { cl, getLanguages } from "./translate";
 
 const LanguageSettingKeys = ["receivedInput", "receivedOutput", "sentInput", "sentOutput"] as const;
 

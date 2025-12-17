@@ -22,9 +22,9 @@ import { openModal } from "@utils/modal";
 import { IconComponent } from "@utils/types";
 import { Alerts, Forms, Tooltip, useEffect, useState } from "@webpack/common";
 
-import { settings } from "./settings";
-import { TranslateModal } from "./TranslateModal";
-import { cl } from "./utils";
+import { settings } from "../settings";
+import { TranslateModal } from "./modal";
+import { cl } from "./translate";
 
 export const TranslateIcon: IconComponent = ({ height = 20, width = 20, className }) => {
     return (

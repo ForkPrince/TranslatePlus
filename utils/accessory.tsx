@@ -19,8 +19,8 @@
 import { Message } from "@vencord/discord-types";
 import { Parser, useEffect, useState } from "@webpack/common";
 
-import { TranslateIcon } from "./TranslateIcon";
-import { cl, TranslationValue } from "./utils";
+import { TranslateIcon } from "./icon";
+import { cl, TranslationValue } from "./translate";
 
 const TranslationSetters = new Map<string, (v: TranslationValue) => void>();
 

@@ -25,9 +25,9 @@ import { Message } from "@vencord/discord-types";
 import { ChannelStore, Menu } from "@webpack/common";
 
 import { settings } from "./settings";
-import { setShouldShowTranslateEnabledTooltip, TranslateChatBarIcon, TranslateIcon } from "./TranslateIcon";
-import { handleTranslate, TranslationAccessory } from "./TranslationAccessory";
-import { translate } from "./utils";
+import { setShouldShowTranslateEnabledTooltip, TranslateChatBarIcon, TranslateIcon } from "./utils/icon";
+import { handleTranslate, TranslationAccessory } from "./utils/accessory";
+import { translate } from "./utils/translate";
 
 const messageCtxPatch: NavContextMenuPatchCallback = (children, { message }: { message: Message; }) => {
     const content = getMessageContent(message);

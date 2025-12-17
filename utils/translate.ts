@@ -21,8 +21,8 @@ import { onlyOnce } from "@utils/onlyOnce";
 import { PluginNative } from "@utils/types";
 import { showToast, Toasts } from "@webpack/common";
 
-import { DeeplLanguages, deeplLanguageToGoogleLanguage, GoogleLanguages } from "./languages";
-import { resetLanguageDefaults, settings } from "./settings";
+import { DeeplLanguages, deeplLanguageToGoogleLanguage, GoogleLanguages } from "../misc/languages";
+import { resetLanguageDefaults, settings } from "../settings";
 
 export const cl = classNameFactory("vc-trans-");
 
