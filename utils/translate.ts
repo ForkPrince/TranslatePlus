@@ -134,7 +134,7 @@ export async function translate(kind: "received" | "sent", text: string): Promis
             let processedText = text;
             if (isSitelen(text) && sitelen) processedText = await translateSitelen(text);
 
-            const tokiResponse = await fetch("https://aiapi.serversmp.xyz/toki", {
+            const tokiResponse = await fetch("https://toki.twint.my.id/v1", {
                 method: "POST",
                 headers: {
                     "Accept": "application/json",
