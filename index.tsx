@@ -38,7 +38,7 @@ const messageCtxPatch: NavContextMenuPatchCallback = (children, { message }: { m
 
     group.splice(group.findIndex(c => c?.props?.id === "copy-text") + 1, 0, (
         <Menu.MenuItem
-            id="vc-trans"
+            id="ec-trans"
             label="Translate"
             icon={TranslateIcon}
             action={async () => {

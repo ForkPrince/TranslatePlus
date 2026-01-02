@@ -24,7 +24,7 @@ import { showToast, Toasts } from "@webpack/common";
 import { DeeplLanguages, deeplLanguageToGoogleLanguage, GoogleLanguages } from "../misc/languages";
 import { resetLanguageDefaults, settings } from "../settings";
 
-export const cl = classNameFactory("vc-trans-");
+export const cl = classNameFactory("ec-trans-");
 
 const Native = VencordNative.pluginHelpers.Translate as PluginNative<typeof import("./native")>;
 
