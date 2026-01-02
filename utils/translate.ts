@@ -41,7 +41,7 @@ interface DeeplData {
 }
 
 export interface TranslationValue {
-    sourceLanguage: string;
+    source: string;
     text: string;
 }
 
@@ -50,133 +50,100 @@ export const getLanguages = () => IS_WEB || settings.store.service === "google"
     : DeeplLanguages;
 
 function isTokiPona(text: string) {
-    const dictionary = /\b(?:leko|weka|pan|lete|linja|lipu|suli|nimi|akesi|misikeke|selo|ike|sijelo|sona|lili|pimeja|ante|jo|loje|telo|walo|kijetesantakalu|kasi|waso|wile|utala|lukin|sina|lape|ma|pilin|jasima|la|olin|pipi|meso|lawa|pi|pakala|oko|tan|ken|jaki|unpa|esun|seme|sitelen|len|kule|soko|open|ala|tenpo|lon|sinpin|pini|kokosila|mama|musi|monsi|mewika|taso|ona|mun|kiwen|tomo|mute|mi|nena|palisa|meli|laso|wawa|ale|kipisi|kulupu|ilo|lupa|nanpa|en|mu|jelo|kili|tonsi|moku|ni|kama|pu|poki|monsuta|sin|lasina|poka|soweli|sewi|elena|epiku|moli|pona|lanpan|alasa|anu|kute|uta|luka|suno|sama|awen|namako|suwi|noka|seli|mije|sike|jan|pali|tawa|inli|nasa|mani|wan|insa|nijon|nasin|kalama|ijo|toki|anpa|kala|kepeken|ko|kon|pana|tu|supa|kin|usawi|yupekosi)\b/gm;
-
-    return (text.match(dictionary) || []).length >= text.split(/\s+/).length * 0.5;
+    return (text.match(/\b(?:leko|weka|pan|lete|linja|lipu|suli|nimi|akesi|misikeke|selo|ike|sijelo|sona|lili|pimeja|ante|jo|loje|telo|walo|kijetesantakalu|kasi|waso|wile|utala|lukin|sina|lape|ma|pilin|jasima|la|olin|pipi|meso|lawa|pi|pakala|oko|tan|ken|jaki|unpa|esun|seme|sitelen|len|kule|soko|open|ala|tenpo|lon|sinpin|pini|kokosila|mama|musi|monsi|mewika|taso|ona|mun|kiwen|tomo|mute|mi|nena|palisa|meli|laso|wawa|ale|kipisi|kulupu|ilo|lupa|nanpa|en|mu|jelo|kili|tonsi|moku|ni|kama|pu|poki|monsuta|sin|lasina|poka|soweli|sewi|elena|epiku|moli|pona|lanpan|alasa|anu|kute|uta|luka|suno|sama|awen|namako|suwi|noka|seli|mije|sike|jan|pali|tawa|inli|nasa|mani|wan|insa|nijon|nasin|kalama|ijo|toki|anpa|kala|kepeken|ko|kon|pana|tu|supa|kin|usawi|yupekosi)\b/gm) || []).length >= text.split(/\s+/).length * 0.5;
 }
 
 function isSitelen(text: string) {
-    const dictionary = /(?:󱤀|󱤁|󱤂|󱤃|󱤄|󱤅|󱤆|󱤇|󱤈|󱤉|󱤊|󱤋|󱤌|󱤍|󱤎|󱤏|󱤐|󱤑|󱤒|󱤓|󱤔|󱤕|󱤖|󱤗|󱤘|󱤙|󱤚|󱤛|󱤜|󱤝|󱤞|󱤟|󱤠|󱤡|󱤢|󱤣|󱤤|󱤥|󱤦|󱤧|󱤨|󱤩|󱤪|󱤫|󱤬|󱤭|󱤮|󱤯|󱤰|󱤱|󱤲|󱤳|󱤴|󱤵|󱤶|󱤷|󱤸|󱤹|󱤺|󱤻|󱤼|󱤽|󱤾|󱤿|󱥀|󱥁|󱥂|󱥃|󱥄|󱥅|󱥆|󱥇|󱥈|󱥉|󱥊|󱥋|󱥌|󱥍|󱥎|󱥏|󱥐|󱥑|󱥒|󱥓|󱥔|󱥕|󱥖|󱥗|󱥘|󱥙|󱥚|󱥛|󱥜|󱥝|󱥞|󱥟|󱥠|󱥡|󱥢|󱥣|󱥤|󱥥|󱥦|󱥧|󱥨|󱥩|󱥪|󱥫|󱥬|󱥭|󱥮|󱥯|󱥰|󱥱|󱥲|󱥳|󱥴|󱥵|󱥶|󱥷|󱦠|󱦡|󱦢|󱦣|󱥸|󱥹|󱥺|󱥻|󱥼|󱥽|󱥾|󱥿|󱦀|󱦁|󱦂|󱦃|󱦄|󱦅|󱦆|󱦇|󱦈|󱦐|󱦑|󱦒|󱦓|󱦔|󱦕|󱦖|󱦗|󱦘|󱦙|󱦚|󱦛|󱦜|󱦝)/gm;
-
-    return dictionary.test(text);
+    return /(?:󱤀|󱤁|󱤂|󱤃|󱤄|󱤅|󱤆|󱤇|󱤈|󱤉|󱤊|󱤋|󱤌|󱤍|󱤎|󱤏|󱤐|󱤑|󱤒|󱤓|󱤔|󱤕|󱤖|󱤗|󱤘|󱤙|󱤚|󱤛|󱤜|󱤝|󱤞|󱤟|󱤠|󱤡|󱤢|󱤣|󱤤|󱤥|󱤦|󱤧|󱤨|󱤩|󱤪|󱤫|󱤬|󱤭|󱤮|󱤯|󱤰|󱤱|󱤲|󱤳|󱤴|󱤵|󱤶|󱤷|󱤸|󱤹|󱤺|󱤻|󱤼|󱤽|󱤾|󱤿|󱥀|󱥁|󱥂|󱥃|󱥄|󱥅|󱥆|󱥇|󱥈|󱥉|󱥊|󱥋|󱥌|󱥍|󱥎|󱥏|󱥐|󱥑|󱥒|󱥓|󱥔|󱥕|󱥖|󱥗|󱥘|󱥙|󱥚|󱥛|󱥜|󱥝|󱥞|󱥟|󱥠|󱥡|󱥢|󱥣|󱥤|󱥥|󱥦|󱥧|󱥨|󱥩|󱥪|󱥫|󱥬|󱥭|󱥮|󱥯|󱥰|󱥱|󱥲|󱥳|󱥴|󱥵|󱥶|󱥷|󱦠|󱦡|󱦢|󱦣|󱥸|󱥹|󱥺|󱥻|󱥼|󱥽|󱥾|󱥿|󱦀|󱦁|󱦂|󱦃|󱦄|󱦅|󱦆|󱦇|󱦈|󱦐|󱦑|󱦒|󱦓|󱦔|󱦕|󱦖|󱦗|󱦘|󱦙|󱦚|󱦛|󱦜|󱦝)/gm.test(text);
 }
 
 function isShavian(text: string) {
-    const shavianRegex = /[\u{10450}-\u{1047F}]+/u;
-
-    return shavianRegex.test(text);
+    return /[\u{10450}-\u{1047F}]+/u.test(text);
 }
 
 async function translateShavian(message: string) {
     const dictionary = await (await fetch("https://forkprince.github.io/TranslatePlus/shavian.json")).json();
 
-    const punctuationMap: Record<string, string> = {
-        '"': "\"",
-        "«": "\"",
-        "»": "\"",
-        ",": ",",
-        "!": "!",
-        "?": "?",
-        ".": ".",
-        "(": "(",
-        ")": ")",
-        "/": "/",
-        ";": ";",
-        ":": ":"
-    };
+    const punctuation = new Set([`"`, "«", "»", ",", "!", "?", ".", "(", ")", "/", ";", ":"]);
 
-    let translated = "";
-    const words = message.split(/\s+/);
+    return message
+        .split(/\s+/)
+        .map((word) => {
+            let before = "", after = "";
 
-    for (let word of words) {
-        let punctuationBefore = "", punctuationAfter = "";
+            if (punctuation.has(word[0])) {
+                before = word[0];
+                word = word.slice(1);
+            }
 
-        if (word[0] in punctuationMap) {
-            punctuationBefore = punctuationMap[word[0]];
-            word = word.slice(1);
-        }
+            if (punctuation.has(word[word.length - 1])) {
+                after = word[word.length - 1];
+                word = word.slice(0, -1);
+            }
 
-        if (word[word.length - 1] in punctuationMap) {
-            punctuationAfter = punctuationMap[word[word.length - 1]];
-            word = word.slice(0, -1);
-        }
-
-        translated += punctuationBefore;
-
-        if (word in dictionary) translated += dictionary[word];
-        else translated += word;
-
-        translated += punctuationAfter + " ";
-    }
-
-    return translated.trim();
+            return `${before}${dictionary[word] ?? word}${after}`;
+        })
+        .join(" ");
 }
 
-async function translateSitelen(message: string) {
-    message = Array.from(message).join(" ");
-
+async function toSitelen(message: string) {
     const dictionary = await (await fetch("https://forkprince.github.io/TranslatePlus/sitelen-pona.json")).json();
 
-    const sorted = Object.keys(dictionary).sort((a, b) => b.length - a.length);
+    const pattern = new RegExp(`(${Object.keys(dictionary).sort((a, b) => b.length - a.length).join("|")})`, "g");
 
-    const pattern = new RegExp(`(${sorted.join("|")})`, "g");
-
-    const translate = message.replace(pattern, match => dictionary[match]);
-
-    return translate;
+    return Array.from(message)
+        .join(" ")
+        .replace(pattern, m => dictionary[m]);
 }
 
 export async function translate(kind: "received" | "sent", text: string): Promise<TranslationValue> {
     const { toki, sitelen, shavian } = settings.store;
 
-    try {
-        if ((isTokiPona(text) || isSitelen(text)) && (toki || sitelen)) {
-            let processedText = text;
-            if (isSitelen(text) && sitelen) processedText = await translateSitelen(text);
+    const translate = IS_WEB || settings.store.service === "google"
+        ? googleTranslate
+        : deeplTranslate;
 
-            const tokiResponse = await fetch("https://toki.twint.my.id/v1", {
+    const target = settings.store[`${kind}Output`];
+
+    const out = async (source: string, text: string) => {
+        if (target === "en") return { source, text };
+
+        const { text: translated } = await translate(text, "en", target);
+        return { source, text: translated };
+    };
+
+    try {
+        if ((toki || sitelen) && (isTokiPona(text) || isSitelen(text))) {
+            const processed = sitelen && isSitelen(text) ? await toSitelen(text) : text;
+
+            const translated = (await (await fetch("https://toki.twint.my.id/v1", {
                 method: "POST",
                 headers: {
                     "Accept": "application/json",
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    text: processedText,
+                    text: processed,
                     src: "tl",
                     target: "en"
                 })
-            });
+            })).json()).translation[0];
 
-            const tokiTranslate = await tokiResponse.json();
-            const translatedText = tokiTranslate.translation[0];
-            const targetLang = settings.store[`${kind}Output`];
+            return out("Toki Pona", translated);
+        }
 
-            return {
-                sourceLanguage: "Toki Pona",
-                text: targetLang === "en" ? translatedText : (await googleTranslate(translatedText, "en", targetLang)).text
-            };
-        } else if (isShavian(text) && shavian) {
-            const translatedText = await translateShavian(text);
-            const targetLang = settings.store[`${kind}Output`];
-
-            return {
-                sourceLanguage: "Shavian",
-                text: targetLang === "en" ? translatedText : (await googleTranslate(translatedText, "en", targetLang)).text
-            };
+        if (isShavian(text) && shavian) {
+            return out("Shavian", await translateShavian(text));
         }
     } catch (e) {
-        console.error("Artistic language translation failed, falling back to standard translation:", e);
+        console.error("Custom language translation failed, using fallback:", e);
     }
-
-    const translate = IS_WEB || settings.store.service === "google"
-        ? googleTranslate
-        : deeplTranslate;
 
     try {
         return await translate(
             text,
             settings.store[`${kind}Input`],
-            settings.store[`${kind}Output`]
+            target
         );
     } catch (e) {
         const userMessage = typeof e === "string"
@@ -211,7 +178,7 @@ async function googleTranslate(text: string, sourceLang: string, targetLang: str
     const { sourceLanguage, translation }: GoogleData = await res.json();
 
     return {
-        sourceLanguage: GoogleLanguages[sourceLanguage] ?? sourceLanguage,
+        source: GoogleLanguages[sourceLanguage] ?? sourceLanguage,
         text: translation
     };
 }
@@ -267,7 +234,7 @@ async function deeplTranslate(text: string, sourceLang: string, targetLang: stri
     const src = translations[0].detected_source_language;
 
     return {
-        sourceLanguage: DeeplLanguages[src] ?? src,
+        source: DeeplLanguages[src] ?? src,
         text: translations[0].text
     };
 }
