@@ -116,7 +116,7 @@ export async function translate(kind: "received" | "sent", text: string): Promis
         if ((toki || sitelen) && (isTokiPona(text) || isSitelen(text))) {
             const processed = sitelen && isSitelen(text) ? await toSitelen(text) : text;
 
-            const translated = (await (await fetch("https://toki.twint.my.id/v1", {
+            const translated = (await (await fetch("https://toki.twint.us.kg/v1", {
                 method: "POST",
                 headers: {
                     "Accept": "application/json",
