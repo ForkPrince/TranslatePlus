@@ -4,7 +4,9 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { settings } from "../settings";
+import { promptToRestart } from "@utils/promptToRestart";
+
+import { settings, YANDEX_API } from "../settings";
 
 function isTokiPona(text: string) {
     const dictionary = /\b(?:leko|weka|pan|lete|linja|lipu|suli|nimi|akesi|misikeke|selo|ike|sijelo|sona|lili|pimeja|ante|jo|loje|telo|walo|kijetesantakalu|kasi|waso|wile|utala|lukin|sina|lape|ma|pilin|jasima|la|olin|pipi|meso|lawa|pi|pakala|oko|tan|ken|jaki|unpa|esun|seme|sitelen|len|kule|soko|open|ala|tenpo|lon|sinpin|pini|kokosila|mama|musi|monsi|mewika|taso|ona|mun|kiwen|tomo|mute|mi|nena|palisa|meli|laso|wawa|ale|kipisi|kulupu|ilo|lupa|nanpa|en|mu|jelo|kili|tonsi|moku|ni|kama|pu|poki|monsuta|sin|lasina|poka|soweli|sewi|elena|epiku|moli|pona|lanpan|alasa|anu|kute|uta|luka|suno|sama|awen|namako|suwi|noka|seli|mije|sike|jan|pali|tawa|inli|nasa|mani|wan|insa|nijon|nasin|kalama|ijo|toki|anpa|kala|kepeken|ko|kon|pana|tu|supa|kin|usawi|yupekosi)\b/gm;
@@ -92,8 +94,72 @@ async function google(target: string, text: string) {
     };
 }
 
+const ucid = crypto.randomUUID().replaceAll("-", "");
+const toYandex: Record<string, string> = { "zh-CN": "zh", "zh-TW": "zh", "iw": "he", "jw": "jv" };
+const fromYandex: Record<string, string> = { "zh": "zh-CN", "he": "iw", "jv": "jw" };
+const markdown: [RegExp, string][] = [
+    [/\*\*(.+?)\*\*/gs, "b"],
+    [/__(.+?)__/gs, "u"],
+    [/\*(.+?)\*/gs, "i"],
+    [/\b_(.+?)_\b/gs, "i"],
+    [/~~(.+?)~~/gs, "s"],
+    [/\|\|(.+?)\|\|/gs, "mark"]
+];
+const marks = { b: "**", u: "__", i: "*", s: "~~", mark: "||" };
+
+function toHtml(text: string) {
+    const kept: string[] = [];
+    let html = text
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/```[\s\S]*?```|`[^`\n]+`|&lt;a?:\w+:\d+&gt;|&lt;(?:@!?|@&amp;|#)\d+&gt;|&lt;t:-?\d+(?::\w)?&gt;|&lt;\/[\w -]+:\d+&gt;|https?:\/\/\S+/g, m => `<var>${kept.push(m) - 1}</var>`);
+    for (const [regex, tag] of markdown) html = html.replace(regex, `<${tag}>$1</${tag}>`);
+    return { html, kept };
+}
+
+function fromHtml(html: string, kept: string[]) {
+    return html
+        .replace(/<var>\s*(\d+)\s*<\/var>/gi, (_, i) => kept[i] ?? "")
+        .replace(/<\/?(b|u|i|s|mark)>/gi, (_, tag) => marks[tag.toLowerCase()])
+        .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, "\"").replace(/&#39;/g, "'").replace(/&amp;/g, "&");
+}
+
+async function yandex(target: string, text: string) {
+    if (!text) return { src: "", text: "" };
+
+    if (!IS_WEB && !await VencordNative.csp.isDomainAllowed(YANDEX_API, ["connect-src"])) {
+        const res = await VencordNative.csp.requestAddOverride(YANDEX_API, ["connect-src"], "Translate+");
+        if (res === "ok") {
+            promptToRestart("relaunch");
+            return { src: "en", text: "Yandex Translate is allowed now. Restart Discord, then translate again." };
+        }
+        return { src: "en", text: "Yandex Translate is blocked. Translate again and click Allow to use it." };
+    }
+
+    try {
+        const { html, kept } = toHtml(text);
+        const res = await fetch(`${YANDEX_API}translate?${new URLSearchParams({ ucid, srv: "android", format: "html" })}`, {
+            method: "POST",
+            body: new URLSearchParams({ text: html, lang: toYandex[target] ?? target })
+        });
+        const translate = await res.json();
+
+        if (translate.code === 501) return { src: "en", text: `Yandex Translate can't translate into "${target}". Change the target language in the plugin settings.` };
+        if (translate.code !== 200) throw new Error(`Request failed with code ${translate.code}: ${translate.message}`);
+
+        const src = translate.lang.split("-")[0];
+        return {
+            src: fromYandex[src] ?? src,
+            text: fromHtml(translate.text.join("\n"), kept)
+        };
+    } catch (error) {
+        console.error("[Translate+] Yandex Translate request failed:", error);
+        return { src: "en", text: "Translation failed due to an error. If you just allowed Yandex Translate, restart Discord." };
+    }
+}
+
 export async function translate(text: string): Promise<any> {
-    const { target, toki, sitelen, shavian } = settings.store;
+    const { target, toki, sitelen, shavian, yandex: useYandex } = settings.store;
+    const machine = useYandex ? yandex : google;
 
     const output = { src: "", text: "" };
 
@@ -118,14 +184,14 @@ export async function translate(text: string): Promise<any> {
         console.log(translate);
 
         output.src = "tp";
-        output.text = target === "en" ? translate.translation[0] : (await google(target, translate.translation[0])).text;
+        output.text = target === "en" ? translate.translation[0] : (await machine(target, translate.translation[0])).text;
     } else if (isShavian(text) && shavian) {
         const translate = await translateShavian(text);
 
         output.src = "sh";
-        output.text = target === "en" ? translate : (await google(target, translate)).text;
+        output.text = target === "en" ? translate : (await machine(target, translate)).text;
     } else {
-        const translate = await google(target, text);
+        const translate = await machine(target, text);
 
         output.src = translate.src;
         output.text = translate.text;
