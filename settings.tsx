@@ -52,7 +52,7 @@ export const settings = definePluginSettings({
         description: IS_WEB ? "Translation provider (not available on web)" : "Translation provider",
         hidden: IS_WEB,
         options: [
-            { label: "Google Translate", value: "google", default: true },
+            { label: "Google Translate — no API key required", value: "google", default: true },
             { label: "Yandex Translate — no API key required", value: "yandex" },
             { label: "DeepL Free — API key required", value: "deepl" },
             { label: "DeepL Pro — API key required", value: "deepl-pro" },
@@ -86,6 +86,15 @@ export const settings = definePluginSettings({
         type: OptionType.BOOLEAN,
         description: "Enable Toki Pona translation",
         default: true
+    },
+    tokiApiVersion: {
+        type: OptionType.SELECT,
+        displayName: "Toki Pona API Version",
+        description: "Translation API used for Toki Pona and Sitelen Pona",
+        options: [
+            { label: "v1 — M2M100 (multi-language)", value: "v1", default: true },
+            { label: "v2 — GPT-2 (Toki Pona ↔ English)", value: "v2" }
+        ] as const
     },
     sitelen: {
         type: OptionType.BOOLEAN,

@@ -7,15 +7,15 @@
 import { classNameFactory } from "@utils/css";
 import { showToast } from "@webpack/common";
 
-import { isSitelen, isTokiPona, toEnglish as tokiPonaToEnglish } from "./translators/tokiPona";
 import { DeeplLanguages, GoogleLanguages, KagiLanguages } from "../misc/languages";
-import { isShavian, toEnglish as shavianToEnglish } from "./translators/shavian";
-import type { TranslationValue, Translator } from "./translators/types";
-import { googleTranslate } from "./translators/google";
-import { yandexTranslate } from "./translators/yandex";
-import { deeplTranslate } from "./translators/deepl";
-import { kagiTranslate } from "./translators/kagi";
 import { settings } from "../settings";
+import { deeplTranslate } from "./translators/deepl";
+import { googleTranslate } from "./translators/google";
+import { kagiTranslate } from "./translators/kagi";
+import { isShavian, toEnglish as shavianToEnglish } from "./translators/shavian";
+import { isSitelen, isTokiPona, toEnglish as tokiToEnglish } from "./translators/toki";
+import type { TranslationValue, Translator } from "./translators/types";
+import { yandexTranslate } from "./translators/yandex";
 
 export type { TranslationValue };
 
@@ -66,7 +66,9 @@ export async function translate(kind: "received" | "sent", text: string): Promis
 
     try {
         const sitelenText = sitelen && isSitelen(text);
-        if ((toki && isTokiPona(text)) || sitelenText) return await out("Toki Pona", await tokiPonaToEnglish(text, sitelenText));
+        if ((toki && isTokiPona(text)) || sitelenText) {
+            return await out("Toki Pona", await tokiToEnglish(text, sitelenText, settings.store.tokiApiVersion));
+        }
 
         if (shavian && isShavian(text)) return await out("Shavian", await shavianToEnglish(text));
     } catch (e) {
