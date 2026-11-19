@@ -7,6 +7,8 @@
 import { definePluginSettings } from "@api/Settings";
 import { OptionType } from "@utils/types";
 
+export const YANDEX_API = "https://translate.yandex.net/api/v1/tr.json/";
+
 export const settings = definePluginSettings({
     target: {
         type: OptionType.STRING,
@@ -31,5 +33,10 @@ export const settings = definePluginSettings({
         description: "Enable Shavian",
         default: true,
         restartNeeded: true
+    },
+    yandex: {
+        type: OptionType.BOOLEAN,
+        description: "Use Yandex Translate instead of Google Translate (free, no API key)",
+        default: false
     }
 });
