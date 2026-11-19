@@ -53,6 +53,7 @@ export const settings = definePluginSettings({
         hidden: IS_WEB,
         options: [
             { label: "Google Translate", value: "google", default: true },
+            { label: "Yandex Translate — no API key required", value: "yandex" },
             { label: "DeepL Free — API key required", value: "deepl" },
             { label: "DeepL Pro — API key required", value: "deepl-pro" },
             { label: "Kagi Translate — API key required", value: "kagi" }
@@ -117,7 +118,7 @@ export const settings = definePluginSettings({
 }>();
 
 export function resetLanguageDefaults() {
-    if (IS_WEB || settings.store.service === "google" || settings.store.service === "kagi") {
+    if (IS_WEB || settings.store.service === "google" || settings.store.service === "yandex" || settings.store.service === "kagi") {
         settings.store.receivedInput = "auto";
         settings.store.receivedOutput = "en";
         settings.store.sentInput = "auto";

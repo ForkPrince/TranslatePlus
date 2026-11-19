@@ -64,7 +64,7 @@ let tooltipTimeout: any;
 
 export default definePlugin({
     name: "Translate+",
-    description: "Translate messages with Google Translate, DeepL or Kagi, with support for artistic languages like Toki Pona, Sitelen Pona, and Shavian",
+    description: "Translate messages with Google Translate, Yandex, DeepL or Kagi, with support for artistic languages like Toki Pona, Sitelen Pona, and Shavian",
     tags: ["Chat", "Utility"],
     authors: [Devs.Ven, Devs.AshtonMemer, Devs.koish1, { name: "Prince527", id: 364105797162237952n }],
     settings,

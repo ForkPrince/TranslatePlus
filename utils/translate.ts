@@ -47,6 +47,13 @@ interface KagiData {
     };
 }
 
+interface YandexData {
+    code: number;
+    message?: string;
+    lang: string;
+    text: string[];
+}
+
 export interface TranslationValue {
     sourceLanguage: string;
     text: string;
@@ -58,6 +65,7 @@ export const getLanguages = () => {
     }
     switch (settings.store.service) {
         case "google":
+        case "yandex":
             return GoogleLanguages;
         case "kagi":
             return KagiLanguages;
@@ -113,6 +121,66 @@ async function toSitelen(message: string) {
         .replace(pattern, m => dictionary[m]);
 }
 
+const toYandex: Record<string, string> = { "zh-CN": "zh", "zh-TW": "zh", "iw": "he", "jw": "jv" };
+const fromYandex: Record<string, string> = { "zh": "zh-CN", "he": "iw", "jv": "jw" };
+const markdown: [RegExp, string][] = [
+    [/\*\*(.+?)\*\*/gs, "b"],
+    [/__(.+?)__/gs, "u"],
+    [/\*(.+?)\*/gs, "i"],
+    [/\b_(.+?)_\b/gs, "i"],
+    [/~~(.+?)~~/gs, "s"],
+    [/\|\|(.+?)\|\|/gs, "mark"]
+];
+const marks: Record<string, string> = { b: "**", u: "__", i: "*", s: "~~", mark: "||" };
+
+function toYandexHtml(text: string) {
+    const kept: string[] = [];
+    let html = text
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/```[\s\S]*?```|`[^`\n]+`|&lt;a?:\w+:\d+&gt;|&lt;(?:@!?|@&amp;|#)\d+&gt;|&lt;t:-?\d+(?::\w)?&gt;|&lt;\/[\w -]+:\d+&gt;|https?:\/\/\S+/g, m => `<var>${kept.push(m) - 1}</var>`);
+    for (const [regex, tag] of markdown) html = html.replace(regex, `<${tag}>$1</${tag}>`);
+    return { html, kept };
+}
+
+function fromYandexHtml(html: string, kept: string[]) {
+    return html
+        .replace(/<var>\s*(\d+)\s*<\/var>/gi, (_, i) => kept[i] ?? "")
+        .replace(/<\/?(b|u|i|s|mark)>/gi, (_, tag) => marks[tag.toLowerCase()])
+        .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, "\"").replace(/&#39;/g, "'").replace(/&amp;/g, "&");
+}
+
+async function yandexTranslate(text: string, sourceLang: string, targetLang: string): Promise<TranslationValue> {
+    if (!text) return { sourceLanguage: "", text: "" };
+
+    const { html, kept } = toYandexHtml(text);
+    // Yandex auto-detects the source language, so only the target is sent.
+    const { status, data } = await Native.makeYandexTranslateRequest(html, toYandex[targetLang] ?? targetLang);
+
+    if (status === -1)
+        throw "Failed to connect to Yandex Translate API: " + data;
+
+    if (status !== 200)
+        throw new Error(
+            `Failed to translate "${text}" (${sourceLang} -> ${targetLang})`
+            + `\n${status} ${JSON.stringify(data)}`
+        );
+
+    const translation: YandexData = data;
+
+    if (translation.code === 501)
+        throw `Yandex Translate can't translate into "${targetLang}". Change the target language in the plugin settings.`;
+
+    if (translation.code !== 200)
+        throw new Error(`Yandex Translate request failed with code ${translation.code}: ${translation.message ?? ""}`);
+
+    const sourceLanguage = translation.lang.split("-")[0];
+
+    return {
+        sourceLanguage: fromYandex[sourceLanguage] ?? sourceLanguage,
+        text: fromYandexHtml(translation.text.join("\n"), kept)
+    };
+}
+
 export async function translate(kind: "received" | "sent", text: string): Promise<TranslationValue> {
     const { toki, sitelen, shavian } = settings.store;
 
@@ -120,6 +188,8 @@ export async function translate(kind: "received" | "sent", text: string): Promis
         switch (settings.store.service) {
             case "google":
                 return googleTranslate;
+            case "yandex":
+                return yandexTranslate;
             case "kagi":
                 return kagiTranslate;
             default:
