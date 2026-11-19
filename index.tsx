@@ -22,15 +22,15 @@ import { findGroupChildrenByChildId, NavContextMenuPatchCallback } from "@api/Co
 import { Devs } from "@utils/constants";
 import definePlugin from "@utils/types";
 import { Message } from "@vencord/discord-types";
-import { ChannelStore, Menu } from "@webpack/common";
+import { Menu } from "@webpack/common";
 
 import { settings } from "./settings";
-import { setShouldShowTranslateEnabledTooltip, TranslateChatBarIcon, TranslateIcon } from "./utils/icon";
 import { handleTranslate, TranslationAccessory } from "./utils/accessory";
+import { setShouldShowTranslateEnabledTooltip, TranslateChatBarIcon, TranslateIcon } from "./utils/icon";
 import { translate } from "./utils/translate";
 
 const messageCtxPatch: NavContextMenuPatchCallback = (children, { message }: { message: Message; }) => {
-    const content = getMessageContent(message);
+    const content = document.getSelection()?.toString() || getMessageContent(message);
     if (!content) return;
 
     const group = findGroupChildrenByChildId("copy-text", children);
@@ -41,6 +41,7 @@ const messageCtxPatch: NavContextMenuPatchCallback = (children, { message }: { m
             id="ec-trans"
             label="Translate"
             icon={TranslateIcon}
+            leadingAccessory={{ type: "icon", icon: TranslateIcon }}
             action={async () => {
                 const trans = await translate("received", content);
                 handleTranslate(message.id, trans);
@@ -63,8 +64,9 @@ let tooltipTimeout: any;
 
 export default definePlugin({
     name: "Translate+",
-    description: "Translate messages with Google Translate, DeepL and support for artistic languages like Toki Pona, Sitelen Pona, and Shavian",
-    authors: [Devs.Ven, Devs.AshtonMemer, { name: "Prince527", id: 364105797162237952n }],
+    description: "Translate messages with Google Translate, DeepL or Kagi, with support for artistic languages like Toki Pona, Sitelen Pona, and Shavian",
+    tags: ["Chat", "Utility"],
+    authors: [Devs.Ven, Devs.AshtonMemer, Devs.koish1, { name: "Prince527", id: 364105797162237952n }],
     settings,
     contextMenus: {
         "message": messageCtxPatch
@@ -72,7 +74,10 @@ export default definePlugin({
     // not used, just here in case some other plugin wants it or w/e
     translate,
 
-    renderMessageAccessory: props => <TranslationAccessory message={props.message} />,
+    renderMessageAccessory: props =>
+        !props.isMessageSnapshot
+            ? <TranslationAccessory message={props.message} />
+            : null,
 
     chatBarButton: {
         icon: TranslateIcon,
@@ -88,8 +93,6 @@ export default definePlugin({
             return {
                 label: "Translate",
                 icon: TranslateIcon,
-                message,
-                channel: ChannelStore.getChannel(message.channel_id),
                 onClick: async () => {
                     const trans = await translate("received", content);
                     handleTranslate(message.id, trans);

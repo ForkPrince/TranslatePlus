@@ -16,17 +16,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { classNameFactory } from "@api/Styles";
+import { classNameFactory } from "@utils/css";
 import { onlyOnce } from "@utils/onlyOnce";
 import { PluginNative } from "@utils/types";
-import { showToast, Toasts } from "@webpack/common";
+import { showToast } from "@webpack/common";
 
-import { DeeplLanguages, deeplLanguageToGoogleLanguage, GoogleLanguages } from "../misc/languages";
+import { DeeplLanguages, deeplLanguageToGoogleLanguage, GoogleLanguages, KagiLanguages } from "../misc/languages";
 import { resetLanguageDefaults, settings } from "../settings";
 
 export const cl = classNameFactory("ec-trans-");
 
-const Native = VencordNative.pluginHelpers.Translate as PluginNative<typeof import("./native")>;
+const Native = VencordNative.pluginHelpers["Translate+"] as PluginNative<typeof import("../native")>;
 
 interface GoogleData {
     translation: string;
@@ -40,14 +40,31 @@ interface DeeplData {
     }[];
 }
 
+interface KagiData {
+    translation: string;
+    detected_language: {
+        label: string;
+    };
+}
+
 export interface TranslationValue {
-    source: string;
+    sourceLanguage: string;
     text: string;
 }
 
-export const getLanguages = () => IS_WEB || settings.store.service === "google"
-    ? GoogleLanguages
-    : DeeplLanguages;
+export const getLanguages = () => {
+    if (IS_WEB) {
+        return GoogleLanguages;
+    }
+    switch (settings.store.service) {
+        case "google":
+            return GoogleLanguages;
+        case "kagi":
+            return KagiLanguages;
+        default:
+            return DeeplLanguages;
+    }
+};
 
 function isTokiPona(text: string) {
     return (text.match(/\b(?:leko|weka|pan|lete|linja|lipu|suli|nimi|akesi|misikeke|selo|ike|sijelo|sona|lili|pimeja|ante|jo|loje|telo|walo|kijetesantakalu|kasi|waso|wile|utala|lukin|sina|lape|ma|pilin|jasima|la|olin|pipi|meso|lawa|pi|pakala|oko|tan|ken|jaki|unpa|esun|seme|sitelen|len|kule|soko|open|ala|tenpo|lon|sinpin|pini|kokosila|mama|musi|monsi|mewika|taso|ona|mun|kiwen|tomo|mute|mi|nena|palisa|meli|laso|wawa|ale|kipisi|kulupu|ilo|lupa|nanpa|en|mu|jelo|kili|tonsi|moku|ni|kama|pu|poki|monsuta|sin|lasina|poka|soweli|sewi|elena|epiku|moli|pona|lanpan|alasa|anu|kute|uta|luka|suno|sama|awen|namako|suwi|noka|seli|mije|sike|jan|pali|tawa|inli|nasa|mani|wan|insa|nijon|nasin|kalama|ijo|toki|anpa|kala|kepeken|ko|kon|pana|tu|supa|kin|usawi|yupekosi)\b/gm) || []).length >= text.split(/\s+/).length * 0.5;
@@ -99,17 +116,24 @@ async function toSitelen(message: string) {
 export async function translate(kind: "received" | "sent", text: string): Promise<TranslationValue> {
     const { toki, sitelen, shavian } = settings.store;
 
-    const translate = IS_WEB || settings.store.service === "google"
-        ? googleTranslate
-        : deeplTranslate;
+    const translate = IS_WEB ? googleTranslate : (() => {
+        switch (settings.store.service) {
+            case "google":
+                return googleTranslate;
+            case "kagi":
+                return kagiTranslate;
+            default:
+                return deeplTranslate;
+        }
+    })();
 
     const target = settings.store[`${kind}Output`];
 
-    const out = async (source: string, text: string) => {
-        if (target === "en") return { source, text };
+    const out = async (sourceLanguage: string, text: string) => {
+        if (target === "en") return { sourceLanguage, text };
 
         const { text: translated } = await translate(text, "en", target);
-        return { source, text: translated };
+        return { sourceLanguage, text: translated };
     };
 
     try {
@@ -150,7 +174,7 @@ export async function translate(kind: "received" | "sent", text: string): Promis
             ? e
             : "Something went wrong. If this issue persists, please check the console or ask for help in the support server.";
 
-        showToast(userMessage, Toasts.Type.FAILURE);
+        showToast({ text: userMessage, variant: "critical" });
 
         throw e instanceof Error
             ? e
@@ -178,7 +202,7 @@ async function googleTranslate(text: string, sourceLang: string, targetLang: str
     const { sourceLanguage, translation }: GoogleData = await res.json();
 
     return {
-        source: GoogleLanguages[sourceLanguage] ?? sourceLanguage,
+        sourceLanguage: GoogleLanguages[sourceLanguage] ?? sourceLanguage,
         text: translation
     };
 }
@@ -192,12 +216,12 @@ function fallbackToGoogle(text: string, sourceLang: string, targetLang: string):
 }
 
 const showDeeplApiQuotaToast = onlyOnce(
-    () => showToast("Deepl API quota exceeded. Falling back to Google Translate", Toasts.Type.FAILURE)
+    () => showToast({ text: "Deepl API quota exceeded. Falling back to Google Translate", variant: "critical" })
 );
 
 async function deeplTranslate(text: string, sourceLang: string, targetLang: string): Promise<TranslationValue> {
     if (!settings.store.deeplApiKey) {
-        showToast("DeepL API key is not set. Resetting to Google", Toasts.Type.FAILURE);
+        showToast({ text: "DeepL API key is not set. Resetting to Google", variant: "critical" });
 
         settings.store.service = "google";
         resetLanguageDefaults();
@@ -234,7 +258,29 @@ async function deeplTranslate(text: string, sourceLang: string, targetLang: stri
     const src = translations[0].detected_source_language;
 
     return {
-        source: DeeplLanguages[src] ?? src,
+        sourceLanguage: DeeplLanguages[src] ?? src,
         text: translations[0].text
+    };
+}
+
+async function kagiTranslate(text: string, sourceLang: string, targetLang: string): Promise<TranslationValue> {
+    const { status, data } = await Native.makeKagiTranslateRequest(
+        settings.store.kagiSession, text, sourceLang, targetLang
+    );
+
+    switch (status) {
+        case 200:
+            break;
+        case 401:
+            throw "Invalid or expired Kagi session token";
+        default:
+            throw new Error(`Failed to translate "${text}" (${sourceLang} -> ${targetLang})\n${status} ${data}`);
+    }
+
+    const { detected_language, translation }: KagiData = data;
+
+    return {
+        sourceLanguage: detected_language.label,
+        text: translation
     };
 }
